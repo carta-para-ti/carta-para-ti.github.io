@@ -961,8 +961,10 @@ async function renderPhotos() {
     card.querySelector("p").textContent = p.q;
     const input = card.querySelector("input"), msg = card.querySelector(".msg");
     if (input) input.onkeydown = async e => {
-      if (e.key !== "Enter") return;
-      const piece = await openBox(p, input.value);
+      if (e.key !== "Enter" || input.readOnly || !normText(input.value)) return;
+      input.readOnly = true; msg.textContent = "Comprobando…";
+      const piece = await openBoxLoose(p, input.value);
+      input.readOnly = false; msg.textContent = "";
       if (!piece) return fail(input, msg, "Esa no es. Mira bien la foto.");
       st.photos[i] = piece; save();
       renderPhotos();
@@ -971,6 +973,29 @@ async function renderPhotos() {
     };
     wrap.append(card);
   });
+}
+
+// Si escribe una frase ("creo que es en el acuario"), se prueba también sin las palabras de relleno del principio
+// y con cada trozo de una a cuatro palabras seguidas: si la respuesta está dentro, vale.
+const FILLER = new Set(["el", "la", "los", "las", "l", "en", "un", "una", "de", "del", "es", "creo", "que", "q", "pues", "a", "al"]);
+function looseCandidates(text) {
+  const words = normText(text).split(" ").slice(0, 10), out = [words.join(" ")];
+  let k = 0;
+  while (k < words.length - 1 && FILLER.has(words[k])) k++;
+  out.push(words.slice(k).join(" "));
+  for (let len = 1; len <= Math.min(4, words.length); len++)
+    for (let i = 0; i + len <= words.length; i++) {
+      const part = words.slice(i, i + len);
+      if (!FILLER.has(part[0]) && !FILLER.has(part[len - 1])) out.push(part.join(" "));
+    }
+  return [...new Set(out)].filter(Boolean).slice(0, 30);
+}
+async function openBoxLoose(box, text) {
+  for (const c of looseCandidates(text)) {
+    const piece = await openBox(box, c);
+    if (piece) return piece;
+  }
+  return null;
 }
 
 function zoom(src) {
