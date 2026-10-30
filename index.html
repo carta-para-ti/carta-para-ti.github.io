@@ -154,7 +154,12 @@
   .env-flap { position: absolute; left: 0; right: 0; top: 0; height: 60%; z-index: 3; transform-origin: 50% 0; transform-style: preserve-3d; }
   .env-flap i { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; clip-path: polygon(0 0, 100% 0, 50% 100%); }
   .env-flap .out { background: linear-gradient(#e6b33d, #f1c654); border-radius: 8px 8px 0 0; }
-  .env-flap .in { background: repeating-linear-gradient(45deg, #fbe3a0 0 7px, #f3cd6a 7px 14px); transform: rotateX(180deg); }
+  /* La cara de dentro va girada 180º y la solapa entera también: el triángulo se recorta al revés para que,
+     al abrirse, quede con la base en el borde del sobre y la punta hacia arriba. */
+  .env-flap .in {
+    background: repeating-linear-gradient(45deg, #fbe3a0 0 7px, #f3cd6a 7px 14px); transform: rotateX(180deg);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
   .seal { position: absolute; left: 50%; top: 56%; width: 64px; height: 64px; margin: -32px 0 0 -32px; z-index: 5; transition: transform .25s; }
   .envelope:hover .seal { transform: scale(1.07); }
   .seal i {
