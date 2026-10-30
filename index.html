@@ -111,9 +111,9 @@
   @keyframes shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
 
   /* ---------- sobre ---------- */
-  .envelope-scene { display: grid; place-items: center; min-height: 80vh; text-align: center; }
+  .envelope-scene { display: grid; place-items: end center; min-height: calc(100vh - 80px); min-height: calc(100svh - 80px); text-align: center; }
   .env-stage { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 130px; }
-  .env-float { animation: bob 3.4s ease-in-out infinite; }
+  .env-float { position: relative; animation: bob 3.4s ease-in-out infinite; }
   @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
   .env-ground {
     width: 230px; max-width: 70vw; height: 18px; margin-top: 22px; border-radius: 50%;
@@ -180,14 +180,23 @@
   @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(60deg); } }
   .particle { position: absolute; z-index: 7; pointer-events: none; line-height: 1; }
   .tap { margin-top: 18px; font: 700 26px var(--hand); color: var(--muted); animation: pulse 2s infinite; }
-  /* Buzón amarillo en su poste, del que sale volando el sobre. */
-  .mailbox { position: absolute; left: clamp(-90px, calc(-10px - (100vw - 400px) * .2), -10px); top: -26px; width: 86px; height: 163px; z-index: 1; transform-origin: 50% 100%; }
+  /* Buzón amarillo sobre su pie de hierro, en la acera. */
+  .mailbox { position: absolute; left: 4px; top: -86px; width: 112px; height: 209px; z-index: 1; transform-origin: 50% 100%; }
+  @media (min-width: 700px) { .mailbox { left: -190px; top: 120px; width: 132px; height: 246px; } }
   .mailbox svg { width: 100%; height: 100%; overflow: visible; }
   .mailbox .mb-flap { transform-box: fill-box; transform-origin: 50% 0; }
-  /* Las manos que reciben el sobre: van debajo, con los dedos por delante del borde del sobre. */
-  .hands { display: block; width: 104%; margin: -64px 0 0 -2%; position: relative; z-index: 4; pointer-events: none; }
+  /* Nuestras manos (en primera persona): las palmas por detrás del sobre y los pulgares por delante. */
+  .env-float .envelope { z-index: 2; }
+  .hands { position: absolute; left: 0; top: 0; width: 100%; pointer-events: none; }
   .hands svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .hands.back { z-index: 1; } .hands.front { z-index: 3; }
+  .env-ground { display: none; }
   .env-stage .tap.wait { opacity: 0; animation: none; }
+  /* En la calle, el aviso va encima del sobre, en una etiqueta que se lea sobre el fondo. */
+  .env-stage .tap {
+    order: -1; position: relative; z-index: 5; margin: 0 0 16px; padding: 2px 16px 4px; border-radius: 999px;
+    background: rgba(255, 250, 240, .9); color: #6b4a2a; box-shadow: 0 3px 10px rgba(58, 42, 28, .18);
+  }
   @keyframes pulse { 50% { opacity: .45; } }
 
   /* ---------- puerta ---------- */
@@ -583,10 +592,13 @@
   .gw-cloud { position: absolute; left: 0; width: 170px; height: 64px; animation: drift linear infinite; }
   .gw-cloud svg { width: 100%; height: 100%; overflow: visible; }
   @keyframes drift { from { transform: translateX(-260px); } to { transform: translateX(calc(100vw + 60px)); } }
-  .gw-bird { position: absolute; width: 18px; height: 8px; animation: fly linear infinite; }
-  .gw-bird svg { width: 100%; height: 100%; overflow: visible; animation: flap .5s ease-in-out infinite alternate; }
-  @keyframes fly { from { transform: translate(-40px, 0); } to { transform: translate(calc(100vw + 40px), -60px); } }
-  @keyframes flap { to { transform: scaleY(.45); } }
+  /* Pájaros: esperan fuera de la pantalla (fill backwards) y cruzan aleteando. */
+  .gw-bird { position: absolute; left: -70px; width: 26px; height: 15px; animation: fly linear infinite backwards; }
+  .gw-bird svg { width: 100%; height: 100%; overflow: visible; }
+  .gw-bird .wing { transform-box: fill-box; transform-origin: 70% 100%; animation: flap .32s ease-in-out infinite alternate; }
+  .gw-bird .wing.far { animation-delay: -.08s; }
+  @keyframes fly { from { transform: translate(0, 0); } to { transform: translate(calc(100vw + 140px), -50px); } }
+  @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.55); } }
   /* Las colinas se colocan desde el JS para que la casa quede siempre posada sobre ellas; debajo sigue el prado. */
   .gw-hills { position: absolute; left: 0; top: 60%; width: 100%; height: 40%; }
   .gw-ground { position: absolute; left: 0; right: 0; bottom: 0; top: 100%; background: linear-gradient(#a9c27c, #9cb970); }
@@ -611,6 +623,14 @@
     90% { opacity: .7; } 100% { transform: translate(calc(var(--sway) * -1), 105vh) rotate(420deg); opacity: 0; }
   }
   .gate-world .firefly { z-index: auto; }
+  /* ---------- la calle de la pantalla del sobre (solo se ve en esa fase) ---------- */
+  .intro-world { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; visibility: hidden; transition: opacity 1s ease, visibility 0s 1s; }
+  body[data-stage="intro"] .intro-world { opacity: 1; visibility: visible; transition: opacity 1s ease; }
+  .intro-world > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .iw-bulb { animation: bulb 2.4s ease-in-out infinite; }
+  .iw-pigeon { transform-box: fill-box; transform-origin: 70% 100%; animation: peck 2.6s ease-in-out infinite; }
+  @keyframes peck { 0%, 60%, 100% { transform: none; } 70% { transform: rotate(24deg); } 80% { transform: none; } 88% { transform: rotate(20deg); } }
+  .iw-lampglow { animation: flicker 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   /* Jirafas que caminan por la colina: las patas van y vienen, el cuerpo sube y baja un poco. */
   .gw-leg { transform-box: fill-box; transform-origin: 50% 0; animation: gstep .9s ease-in-out infinite alternate; }
   .gw-leg.b { animation-delay: -.9s; }
@@ -639,6 +659,7 @@
 </style>
 </head>
 <body>
+<div class="intro-world" id="intro-world" aria-hidden="true"></div>
 <div class="gate-world" id="gate-world" aria-hidden="true"></div>
 <div class="hearts" id="hearts"></div>
 <div class="door-light" id="door-light"></div>
@@ -657,19 +678,30 @@
         <span class="twinkle" style="left:44%;top:4%;font-size:13px;animation-delay:2.3s">✦</span>
         <span class="twinkle" style="right:-2%;top:70%;font-size:12px;animation-delay:1.5s">✦</span>
         <div class="env-glow" id="env-glow"></div>
-        <div class="mailbox" id="mailbox" aria-hidden="true"><svg viewBox="0 0 74 140">
-          <ellipse cx="37" cy="137" rx="22" ry="4" fill="#3a2a1c" opacity=".18"/>
-          <rect x="33" y="62" width="8" height="74" rx="2" fill="#6d5a4a"/><rect x="33" y="62" width="3" height="74" fill="#857160"/>
-          <rect x="26" y="130" width="22" height="6" rx="2" fill="#5b4a3c"/>
-          <path d="M6 66 V30 Q6 6 37 6 Q68 6 68 30 V66 Z" fill="#f2c230"/>
-          <path d="M6 66 V30 Q6 6 37 6 Q50 6 58 11 Q24 12 20 40 V66 Z" fill="#f8d65a"/>
-          <path d="M6 66 V30 Q6 6 37 6 Q68 6 68 30 V66 Z" fill="none" stroke="#c99a1a" stroke-width="2"/>
-          <rect x="3" y="62" width="68" height="7" rx="2" fill="#d9a91f"/>
-          <rect x="17" y="27" width="40" height="8" rx="4" fill="#3a2a1c"/>
-          <rect class="mb-flap" x="15" y="23" width="44" height="7" rx="3" fill="#e0ad1f" stroke="#c99a1a" stroke-width="1"/>
-          <path d="M37 54 c-6 -5 -11 -8 -11 -12 a5 5 0 0 1 11 -1 a5 5 0 0 1 11 1 c0 4 -5 7 -11 12z" fill="#e2566d"/>
+        <div class="mailbox" id="mailbox" aria-hidden="true"><svg viewBox="0 0 110 209">
+          <defs>
+            <linearGradient id="mb-y" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9a800"/><stop offset=".22" stop-color="#ffd84a"/><stop offset=".5" stop-color="#ffcd1f"/><stop offset="1" stop-color="#d99a00"/></linearGradient>
+            <linearGradient id="mb-p" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3d4640"/><stop offset=".35" stop-color="#6b766e"/><stop offset="1" stop-color="#2e3530"/></linearGradient>
+          </defs>
+          <ellipse cx="55" cy="203" rx="40" ry="6" fill="#2a2018" opacity=".28"/>
+          <path d="M34 203 Q36 192 44 188 H66 Q74 192 76 203 Z" fill="url(#mb-p)"/>
+          <rect x="46" y="118" width="18" height="72" rx="3" fill="url(#mb-p)"/>
+          <rect x="42" y="150" width="26" height="6" rx="2" fill="#4c5650"/>
+          <path d="M8 120 V56 Q8 18 55 18 Q102 18 102 56 V120 Z" fill="url(#mb-y)"/>
+          <path d="M8 56 Q8 18 55 18 Q102 18 102 56" fill="none" stroke="#fff4b8" stroke-width="2" opacity=".6"/>
+          <path d="M8 120 V56 Q8 18 55 18 Q102 18 102 56 V120 Z" fill="none" stroke="#b98200" stroke-width="2"/>
+          <rect x="4" y="116" width="102" height="9" rx="3" fill="#cf9300"/>
+          <rect x="18" y="62" width="74" height="48" rx="7" fill="#ffd43a" stroke="#d29a00" stroke-width="1.5"/>
+          <rect x="24" y="38" width="62" height="11" rx="5" fill="#2a2018"/>
+          <rect class="mb-flap" x="21" y="31" width="68" height="11" rx="4" fill="#f2bb12" stroke="#b98200" stroke-width="1.2"/>
+          <circle cx="55" cy="83" r="14" fill="#fff6d2" stroke="#d29a00" stroke-width="1.5"/>
+          <path d="M55 92 c-7 -5 -11 -8.5 -11 -12.5 a5.5 5.5 0 0 1 11 -1.5 a5.5 5.5 0 0 1 11 1.5 c0 4 -4 7.5 -11 12.5z" fill="#e2566d"/>
+          <rect x="34" y="100" width="42" height="6" rx="2" fill="#e6a800"/>
+          <g fill="#b98200"><circle cx="23" cy="67" r="1.5"/><circle cx="87" cy="67" r="1.5"/><circle cx="23" cy="105" r="1.5"/><circle cx="87" cy="105" r="1.5"/></g>
+          <path d="M14 70 V112" stroke="#fff4b8" stroke-width="3" stroke-linecap="round" opacity=".35"/>
         </svg></div>
         <div class="env-float" id="env-float">
+          <div class="hands back" id="hands" aria-hidden="true"></div>
           <div class="envelope" id="env" role="button" aria-label="Abrir el sobre" tabindex="0">
             <div class="env-back"></div>
             <div class="env-letter" id="env-letter"><span class="to">para mi</span><span class="name">princesa minion</span><span class="sig">🦒💛</span></div>
@@ -677,17 +709,7 @@
             <div class="env-flap" id="env-flap"><i class="out"></i><i class="in"></i></div>
             <div class="seal" id="seal"><i class="l">❤</i><i class="r">❤</i></div>
           </div>
-          <div class="hands" id="hands" aria-hidden="true"><svg viewBox="0 0 340 110">
-            <g id="hand-l">
-              <path d="M-6 112 L22 70 L58 84 L34 116 Z" fill="#8fb0d8"/><path d="M18 74 L56 88" stroke="#fffaf0" stroke-width="6" stroke-linecap="round"/>
-              <g stroke="#d99f7d" stroke-width="15" stroke-linecap="round"><path d="M70 74 L104 40"/><path d="M76 82 L114 50"/><path d="M80 90 L118 63"/><path d="M80 97 L112 78"/><path d="M58 66 L72 34"/></g>
-              <g stroke="#f4cba8" stroke-width="12" stroke-linecap="round"><path d="M70 74 L104 40"/><path d="M76 82 L114 50"/><path d="M80 90 L118 63"/><path d="M80 97 L112 78"/><path d="M58 66 L72 34"/></g>
-              <ellipse cx="62" cy="86" rx="30" ry="20" fill="#f4cba8" transform="rotate(-28 62 86)"/>
-              <path d="M44 96 Q60 90 74 98" stroke="#e3b08c" stroke-width="2" fill="none" stroke-linecap="round"/>
-              <g fill="#fbe2cf"><ellipse cx="103" cy="42" rx="3.4" ry="2.4" transform="rotate(-45 103 42)"/><ellipse cx="113" cy="52" rx="3.4" ry="2.4" transform="rotate(-40 113 52)"/><ellipse cx="117" cy="64" rx="3.4" ry="2.4" transform="rotate(-35 117 64)"/><ellipse cx="71" cy="36" rx="3" ry="2.2" transform="rotate(-65 71 36)"/></g>
-            </g>
-            <use href="#hand-l" transform="translate(340 0) scale(-1 1)"/>
-          </svg></div>
+          <div class="hands front" id="hands-front" aria-hidden="true"></div>
         </div>
         <div class="env-ground" id="env-ground"></div>
         <div class="tap wait" id="tap">toca el sobre</div>
@@ -895,6 +917,154 @@ function show(stage) {
 }
 
 // ---------- el sobre ----------
+// La calle del fondo: fachadas de colores con balcones, un café, guirnaldas de luces, farola y acera de baldosas.
+// viewBox 1600 x 900; en el móvil se ve el centro (unos 590-1010). La acera empieza en y = 500.
+(function introWorld() {
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+  const o = [`<defs>
+    <linearGradient id="iw-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b98a"/><stop offset=".6" stop-color="#fbd9b0"/><stop offset="1" stop-color="#fde9cf"/></linearGradient>
+    <linearGradient id="iw-walk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ddd0bb"/><stop offset="1" stop-color="#eee5d6"/></linearGradient>
+    <linearGradient id="iw-shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a2e1c" stop-opacity="0"/><stop offset="1" stop-color="#4a2e1c" stop-opacity=".16"/></linearGradient>
+    <linearGradient id="iw-sun" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb86b" stop-opacity=".28"/><stop offset=".6" stop-color="#ffb86b" stop-opacity="0"/></linearGradient>
+    <radialGradient id="iw-glow"><stop offset="0" stop-color="#ffe7a3" stop-opacity=".85"/><stop offset="1" stop-color="#ffe7a3" stop-opacity="0"/></radialGradient>
+    <linearGradient id="iw-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa3ad"/><stop offset=".5" stop-color="#5f7480"/><stop offset="1" stop-color="#7b8f99"/></linearGradient>
+    <linearGradient id="iw-lit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#f4b54c"/></linearGradient>
+  </defs><rect width="1600" height="900" fill="url(#iw-sky)"/>`];
+
+  // Ventana con contraventanas; a veces con balcón de hierro y macetas.
+  const win = (x, y, balcony, shutter) => {
+    const lit = Math.random() < .35;
+    let w = `<rect x="${x - 3}" y="${y - 3}" width="40" height="62" rx="2" fill="#f7efe0"/><rect x="${x}" y="${y}" width="34" height="56" fill="url(#${lit ? "iw-lit" : "iw-glass"})"/>
+      <rect x="${x + 16}" y="${y}" width="2" height="56" fill="#f7efe0"/><rect x="${x}" y="${y + 22}" width="34" height="2" fill="#f7efe0"/>`;
+    if (!lit) w += `<path d="M${x + 4} ${y + 50} L${x + 14} ${y + 4}" stroke="#fff" stroke-width="3" opacity=".25"/>`;
+    for (const sx of [x - 16, x + 37]) {
+      w += `<rect x="${sx}" y="${y - 2}" width="13" height="60" rx="1.5" fill="${shutter}"/>`;
+      for (let yy = y + 3; yy < y + 56; yy += 5) w += `<rect x="${sx + 2}" y="${yy}" width="9" height="1.4" fill="#000" opacity=".16"/>`;
+    }
+    if (balcony) {
+      w += `<rect x="${x - 20}" y="${y + 56}" width="74" height="5" fill="#cbb79a"/>`;
+      w += `<path d="M${x - 18} ${y + 56} V${y + 36} H${x + 52} V${y + 56}" fill="none" stroke="#3c3430" stroke-width="2"/>`;
+      for (let bx = x - 14; bx < x + 52; bx += 6) w += `<path d="M${bx} ${y + 36} V${y + 56}" stroke="#3c3430" stroke-width="1.1"/>`;
+      for (const px of [x - 12, x + 40]) {
+        w += `<path d="M${px - 6} ${y + 30} h12 l-2 7 h-8z" fill="#c4683f"/>`;
+        for (let i = 0; i < 4; i++) w += `<circle cx="${px + rnd(-6, 6)}" cy="${y + rnd(20, 30)}" r="${rnd(3, 4.5)}" fill="${pick(["#7fae63", "#6a9a50"])}"/><circle cx="${px + rnd(-6, 6)}" cy="${y + rnd(18, 28)}" r="2.2" fill="${pick(["#e2566d", "#f7a6b8", "#ffe27a"])}"/>`;
+      }
+      w += `<path d="M${x - 18} ${y + 58} q${rnd(4, 10)} ${rnd(10, 22)} ${rnd(0, 6)} ${rnd(26, 40)}" stroke="#6a9a50" stroke-width="2" fill="none"/>`;
+    }
+    return w;
+  };
+  // Toldo a rayas con el borde festoneado.
+  const awning = (x, w, y, c1, c2) => {
+    let a = "";
+    for (let i = 0, sx = x; sx < x + w; i++, sx += 16) a += `<path d="M${sx} ${y} L${sx + 16} ${y} L${sx + 20} ${y + 30} L${sx + 4} ${y + 30} Z" fill="${i % 2 ? c2 : c1}"/>`;
+    for (let sx = x + 4; sx < x + w + 4; sx += 16) a += `<path d="M${sx} ${y + 30} q8 10 16 0" fill="${c1}"/>`;
+    return a + `<rect x="${x - 4}" y="${y - 5}" width="${w + 12}" height="6" rx="2" fill="#8a5a3a"/>`;
+  };
+  const bld = [
+    [-30, 270, 96, "#e8c39a", "#7d9e88"], [240, 230, 58, "#d98f6b", "#6f8f7e"], [470, 300, 110, "#f1dfc4", "#6f9a7e"],
+    [770, 260, 44, "#eab9a6", "#5f8a8f"], [1030, 240, 102, "#e7cf8f", "#7d9e88"], [1270, 360, 70, "#d8a47f", "#6f9a7e"],
+  ];
+  for (const [x, w, top, col, sh] of bld) {
+    o.push(`<rect x="${x}" y="${top}" width="${w}" height="${500 - top}" fill="${col}"/>`);
+    o.push(`<rect x="${x - 6}" y="${top - 6}" width="${w + 12}" height="14" fill="#000" opacity=".12"/><rect x="${x - 6}" y="${top - 8}" width="${w + 12}" height="8" fill="${col}" stroke="#000" stroke-opacity=".12"/>`);
+    o.push(`<rect x="${x}" y="${top}" width="${w}" height="${500 - top}" fill="url(#iw-shade)"/><rect x="${x}" y="${top}" width="6" height="${500 - top}" fill="#000" opacity=".06"/>`);
+    const cols = Math.max(2, Math.floor((w - 30) / 80)), gap = (w - cols * 34) / (cols + 1);
+    for (let y = top + 34, row = 0; y < 330; y += 96, row++)
+      for (let c = 0; c < cols; c++) o.push(win(x + gap + c * (34 + gap), y, row % 2 === 0 && Math.random() < .7, sh));
+  }
+  // Bajos: el café (edificio crema), una floristería (rosa), puertas y escaparates.
+  o.push(awning(492, 250, 380, "#c94f4a", "#fbf3e6"));
+  o.push(`<rect x="500" y="420" width="120" height="80" fill="#5c4636"/><rect x="506" y="426" width="108" height="70" fill="url(#iw-lit)" opacity=".9"/>
+    <rect x="640" y="410" width="54" height="90" rx="3" fill="#6b4a32"/><rect x="646" y="418" width="42" height="40" fill="url(#iw-lit)" opacity=".85"/><circle cx="684" cy="462" r="2.5" fill="#e8c46a"/>
+    <path d="M520 360 h80 v-26 h-80 z" fill="#3c3430"/><text x="560" y="353" text-anchor="middle" font-family="Caveat, cursive" font-size="22" fill="#f6d78a">café</text>`);
+  o.push(awning(790, 220, 384, "#4f8a7a", "#fbf3e6"));
+  o.push(`<rect x="796" y="422" width="140" height="78" fill="#4d4038"/><rect x="802" y="428" width="128" height="68" fill="url(#iw-glass)"/>`);
+  for (let i = 0; i < 9; i++) o.push(`<circle cx="${812 + i * 14}" cy="${488 - rnd(0, 18)}" r="${rnd(5, 8)}" fill="${pick(["#e2566d", "#f7a6b8", "#ffe27a", "#fffaf0", "#d9a6e8"])}"/>`);
+  o.push(`<rect x="950" y="414" width="52" height="86" rx="3" fill="#5a4a6a"/><circle cx="992" cy="460" r="2.5" fill="#e8c46a"/>`);
+  for (const [x, c] of [[40, "#7a5a40"], [290, "#4f6d8a"], [1080, "#6b4a32"], [1330, "#7a5a40"], [1460, "#4f6d8a"]])
+    o.push(`<rect x="${x}" y="420" width="56" height="80" rx="3" fill="${c}"/><rect x="${x + 6}" y="428" width="44" height="28" fill="url(#iw-lit)" opacity=".7"/>`);
+  o.push(`<rect x="-10" y="488" width="1620" height="14" fill="#7d6a58" opacity=".55"/><rect width="1600" height="500" fill="url(#iw-sun)"/>`);
+
+  // Farola de pared con su brillo.
+  o.push(`<circle class="iw-lampglow" cx="1010" cy="300" r="70" fill="url(#iw-glow)"/>
+    <path d="M1030 268 H1050 M1030 262 V274" stroke="#2f2a28" stroke-width="5" stroke-linecap="round"/>
+    <path d="M995 282 h30 l-4 -12 h-22 z" fill="#2f2a28"/><rect x="997" y="282" width="26" height="30" rx="3" fill="url(#iw-lit)" stroke="#2f2a28" stroke-width="3"/>
+    <path d="M1001 312 h18 l-3 6 h-12 z" fill="#2f2a28"/><path d="M1010 270 v-10 q0 -6 8 -6 h22" fill="none" stroke="#2f2a28" stroke-width="4"/>`);
+
+  // Guirnaldas de bombillas cruzando la calle.
+  for (const [y0, sag, phase] of [[150, 46, 0], [215, 34, .5]]) {
+    let d = "", bulbs = "";
+    for (let x = -40; x < 1640; x += 220) {
+      d += `M${x} ${y0} Q${x + 110} ${y0 + sag} ${x + 220} ${y0} `;
+      for (let t = .1; t < 1; t += .2) {
+        const bx = x + 220 * t, by = y0 + 2 * sag * t * (1 - t) + 6;
+        bulbs += `<circle class="iw-bulb" cx="${bx}" cy="${by}" r="4.5" fill="#ffe7a3" style="animation-delay:${((bx / 90) + phase) % 2.4}s;filter:drop-shadow(0 0 5px #ffd36b)"/>`;
+      }
+    }
+    o.push(`<path d="${d}" fill="none" stroke="#4a3a30" stroke-width="1.6" opacity=".7"/>${bulbs}`);
+  }
+
+  // Acera de baldosas con perspectiva (punto de fuga en el centro).
+  o.push(`<rect y="500" width="1600" height="400" fill="url(#iw-walk)"/>`);
+  let joints = "";
+  for (let x0 = -2400; x0 <= 4000; x0 += 110) joints += `M${800 + (x0 - 800) * .32} 500 L${x0} 900 `;
+  for (let t = 1; t <= 9; t++) { const y = 500 + 400 * Math.pow(t / 9, 1.7); joints += `M0 ${y} H1600 `; }
+  o.push(`<path d="${joints}" stroke="#c9baa2" stroke-width="2" fill="none"/><rect y="500" width="1600" height="26" fill="#4a3a2a" opacity=".1"/>`);
+
+  // Árboles en alcorque, un banco, una bici y macetas.
+  const tree = (x, s) => {
+    let t = `<ellipse cx="${x}" cy="${560 * 1 + 40 * s}" rx="${46 * s}" ry="${8 * s}" fill="#3a2a1c" opacity=".15"/><rect x="${x - 34 * s}" y="${548 + 30 * s}" width="${68 * s}" height="${10 * s}" fill="#6d5c4c" opacity=".6"/>
+      <path d="M${x - 6 * s} ${590 * 1 + 0 * s} C${x - 4 * s} ${470} ${x - 8 * s} ${420} ${x - 2 * s} ${330} L${x + 6 * s} ${330} C${x + 8 * s} ${420} ${x + 4 * s} ${470} ${x + 7 * s} ${590}Z" fill="#7a5a40"/>`;
+    for (const [dx, dy, r, c] of [[0, 300, 70, "#6f9a55"], [-56, 330, 50, "#6f9a55"], [56, 326, 52, "#6f9a55"], [-30, 270, 52, "#86ad69"], [34, 266, 48, "#86ad69"], [0, 236, 44, "#9fc27f"], [-60, 296, 30, "#86ad69"]])
+      t += `<circle cx="${x + dx * s}" cy="${dy}" r="${r * s}" fill="${c}"/>`;
+    for (let i = 0; i < 10; i++) t += `<circle cx="${x + rnd(-60, 60) * s}" cy="${rnd(230, 330)}" r="${rnd(3, 6)}" fill="#fff" opacity=".18"/>`;
+    return t;
+  };
+  o.push(tree(410, 1), tree(1240, 1.05));
+  o.push(`<g transform="translate(1340 560)"><rect x="0" y="0" width="150" height="10" rx="3" fill="#a8743f"/><rect x="0" y="-34" width="150" height="9" rx="3" fill="#a8743f"/><rect x="0" y="-20" width="150" height="9" rx="3" fill="#b9844e"/>
+    <path d="M12 -36 V44 M138 -36 V44 M8 10 L4 44 M142 10 L146 44" stroke="#2f2a28" stroke-width="5" stroke-linecap="round"/></g>`);
+  o.push(`<g transform="translate(1090 545)" fill="none" stroke="#3f6f8f" stroke-width="5"><circle cx="0" cy="0" r="30" stroke="#2f2a28"/><circle cx="96" cy="0" r="30" stroke="#2f2a28"/>
+    <path d="M0 0 L32 -42 L80 -42 L96 0 M32 -42 L48 0 L80 -42 M48 0 L0 0"/><path d="M26 -52 h14 M80 -42 L76 -58 h-10" stroke="#2f2a28"/></g>`);
+  for (const x of [120, 700, 1530]) {
+    o.push(`<path d="M${x - 22} 470 h44 l-6 30 h-32 z" fill="#c4683f"/>`);
+    for (let i = 0; i < 7; i++) o.push(`<circle cx="${x + rnd(-20, 20)}" cy="${rnd(446, 472)}" r="${rnd(6, 10)}" fill="${pick(["#7fae63", "#6a9a50", "#8bb66c"])}"/>`);
+    for (let i = 0; i < 6; i++) o.push(`<circle cx="${x + rnd(-18, 18)}" cy="${rnd(442, 466)}" r="3" fill="${pick(["#e2566d", "#f7a6b8", "#ffe27a", "#fffaf0"])}"/>`);
+  }
+  // Palomas picoteando.
+  const pigeon = (x, y, k, flip) => `<g transform="translate(${x} ${y}) scale(${flip ? -k : k} ${k})">
+    <ellipse cx="0" cy="2" rx="14" ry="2.5" fill="#000" opacity=".12"/>
+    <path d="M-14 -8 L-24 -12 L-22 -4 Z" fill="#6e6f78"/><ellipse cx="-2" cy="-9" rx="13" ry="8" fill="#9a9ca6"/><path d="M-8 -12 Q0 -16 6 -9 Q-2 -6 -8 -12Z" fill="#7d7f8a"/>
+    <path d="M-2 0 v-3 M3 0 v-3" stroke="#d9805e" stroke-width="1.6"/>
+    <g class="iw-pigeon" style="animation-delay:${rnd(0, 2.5)}s"><ellipse cx="9" cy="-15" rx="6" ry="5.5" fill="#8a8c97"/><path d="M5 -12 q4 3 8 0" stroke="#7fb59a" stroke-width="2" fill="none"/>
+    <path d="M14.5 -15.5 l4 1 l-4 1.4z" fill="#d9a07a"/><circle cx="11" cy="-16.5" r="1" fill="#2a2018"/></g></g>`;
+  o.push(pigeon(780, 548, 1.2, false), pigeon(840, 560, 1, true), pigeon(470, 600, 1.3, false), pigeon(1180, 620, 1.2, true));
+
+  const birds = birdFlocks([[6, 4, 24, -4], [12, 3, 32, 6], [4, 5, 40, 16]], rnd).join("");
+  $("intro-world").innerHTML = `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice">${o.join("")}</svg>${birds}`;
+})();
+
+// Nuestras manos, en primera persona: una con manga oscura (la mía) y otra con manga blanca y pulsera (la tuya).
+// viewBox 300 x 300: el sobre ocupa 0-300 x 0-200. Detrás, antebrazos y palmas; delante, los pulgares.
+(function hands() {
+  const skin = "#f1c39d", line = "#c58b67", hand = (front, sleeve, cuff, nail, extra) => front
+    ? `<path d="M36 238 C38 214 52 192 72 178 C80 172 92 175 90 185 C88 193 78 199 70 207 C62 217 56 229 54 240 Z" fill="${skin}" stroke="${line}" stroke-width="1.3"/>
+       <ellipse cx="83" cy="181" rx="6.5" ry="4.6" fill="${nail}" transform="rotate(-42 83 181)"/><path d="M62 206 q6 -2 9 2" stroke="${line}" stroke-width="1.1" fill="none"/>`
+    : `<path d="M-46 330 C-36 292 -12 262 16 246 L62 270 C44 290 30 312 24 330 Z" fill="${sleeve}"/>
+       <path d="M12 244 L64 270 L72 258 L22 232 Z" fill="${cuff}"/>
+       <path d="M22 236 C30 218 48 204 74 199 L142 196 C153 197 155 207 147 213 C130 226 100 240 70 262 C52 258 34 250 22 236 Z" fill="${skin}" stroke="${line}" stroke-width="1.3"/>
+       <path d="M112 202 q10 8 12 18 M96 205 q10 9 11 20 M128 199 q8 6 10 14" stroke="${line}" stroke-width="1.1" fill="none" opacity=".8"/>
+       <path d="M40 246 Q70 252 96 236" stroke="#d9a07c" stroke-width="5" fill="none" opacity=".45" stroke-linecap="round"/>${extra}`;
+  const mine = f => hand(f, "#3e3b44", "#56525d", "#f8dcc6", "");
+  const yours = f => hand(f, "#f3eee5", "#e3dccd", "#f3a0b4", `<path d="M24 246 L68 268" stroke="#e2b33c" stroke-width="2.4"/>`);
+  const svg = f => `<svg viewBox="0 0 300 300">${mine(f)}<g transform="translate(300 0) scale(-1 1)">${yours(f)}</g></svg>`;
+  $("hands").innerHTML = svg(false);
+  $("hands-front").innerHTML = svg(true);
+  // Los antebrazos se pierden hacia abajo, como si salieran de fuera de la pantalla.
+  for (const id of ["hands", "hands-front"]) {
+    $(id).style.webkitMaskImage = $(id).style.maskImage = "linear-gradient(#000 78%, transparent 100%)";
+  }
+})();
+
 let envReady = false;
 async function envArrive() {
   const env = $("env"), tap = $("tap"), box = $("mailbox"), hands = $("hands");
@@ -925,8 +1095,9 @@ async function envArrive() {
   flap.animate([{ transform: "rotateX(75deg) translateY(-3px)" }, { transform: "none" }], { duration: 300, fill: "forwards" });
   await fly.finished;
   // Las manos lo reciben con un pequeño rebote.
-  hands.animate([{ transform: "none" }, { transform: "translateY(9px)" }, { transform: "translateY(-2px)" }, { transform: "none" }],
-    { duration: 600, easing: "ease-out" });
+  for (const h of [hands, $("hands-front")])
+    h.animate([{ transform: "none" }, { transform: "translateY(9px)" }, { transform: "translateY(-2px)" }, { transform: "none" }],
+      { duration: 600, easing: "ease-out" });
   env.animate([{ transform: "none" }, { transform: "translateY(9px)" }, { transform: "translateY(-2px)" }, { transform: "none" }],
     { duration: 600, easing: "ease-out" });
   fx(...center(env), { n: 22, spread: 130, up: 40 });
@@ -985,7 +1156,8 @@ async function openEnvelope() {
       { transform: base + `translateY(${el === flap ? -220 : 220}px)`, opacity: 0 }], drop);
   }
   ground.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: "forwards" });
-  $("hands").animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(60px)" }], drop);
+  for (const h of [$("hands"), $("hands-front")])
+    h.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(80px)" }], drop);
   const big = Math.min(1.5, (window.innerWidth * .8) / letter.offsetWidth);
   await letter.animate([
     { transform: "translateY(-104%) scale(1) rotate(0)" },
@@ -1166,12 +1338,7 @@ addEventListener("resize", fitDoorScene);
   [[7, 110, 1], [16, 150, .7], [27, 90, .55], [11, 130, .45]].forEach(([top, dur, k]) =>
     out.push(`<div class="gw-cloud" style="top:${top}%;scale:${k};opacity:${.55 + k * .4};animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s">${cloud}</div>`));
   // Bandadas de pájaros que cruzan el cielo, cada una a su altura y su ritmo.
-  [[11, 5, 22, -6], [19, 3, 30, 4], [7, 4, 38, 14], [15, 2, 26, 20]].forEach(([top, n, dur, delay]) => {
-    for (let j = 0; j < n; j++) {
-      const size = rnd(14, 22);
-      out.push(`<i class="gw-bird" style="top:${top + rnd(-1.6, 1.6)}%;width:${size}px;height:${size * .45}px;animation-duration:${dur}s;animation-delay:${delay + j * .45 + rnd(0, .3)}s"><svg viewBox="0 0 18 8" style="animation-delay:-${rnd(0, .5)}s"><path d="M1 1 Q5 6 9 5 Q13 6 17 1" fill="none" stroke="#7d5f45" stroke-width="1.7" stroke-linecap="round"/></svg></i>`);
-    }
-  });
+  out.push(...birdFlocks([[11, 5, 22, -6], [19, 3, 30, 4], [7, 4, 38, 14], [15, 2, 26, 20]], rnd));
 
   // ---- El paisaje: viewBox 1000 x 340; en el móvil se ve el centro (unos 330-670). ----
   const g = [];
@@ -1272,6 +1439,21 @@ addEventListener("resize", fitDoorScene);
   w.innerHTML = out.join("");
   walkGiraffes();
 })();
+
+// Pajarito de perfil volando hacia la derecha: cuerpo, cabeza, pico, cola y dos alas que aletean.
+function birdFlocks(flocks, rnd) {
+  const out = [];
+  for (const [top, n, dur, delay] of flocks)
+    for (let j = 0; j < n; j++) {
+      const size = rnd(20, 30), body = ["#6f5640", "#5f4a38", "#7a604a"][j % 3];
+      out.push(`<i class="gw-bird" style="top:${top + rnd(-1.8, 1.8)}%;width:${size}px;height:${size * .58}px;animation-duration:${dur}s;animation-delay:${delay + j * .5 + rnd(0, .3)}s">
+        <svg viewBox="0 0 24 14"><path class="wing far" d="M10 7 Q8 2 4 .5 Q9 1.5 13 6.5 Z" fill="#8c7258"/>
+        <path d="M6.2 8 L1.2 6.2 L2 9.8 Z" fill="${body}"/><ellipse cx="12" cy="8" rx="6.4" ry="2.7" fill="${body}"/>
+        <circle cx="17.8" cy="6.8" r="2.2" fill="${body}"/><path d="M19.7 6.4 L22.4 7 L19.7 7.7 Z" fill="#e7a33a"/><circle cx="18.4" cy="6.3" r=".5" fill="#fff"/>
+        <path class="wing" d="M11 7.4 Q9 1.8 5.5 -.5 Q11 1.2 14.5 6.8 Z" fill="#9a7d60"/></svg></i>`);
+    }
+  return out;
+}
 
 // Una jirafa con su cría, caminando por la colina media (pasan por detrás de los árboles de delante).
 function walkGiraffes() {
