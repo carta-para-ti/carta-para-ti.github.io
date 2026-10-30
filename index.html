@@ -183,22 +183,83 @@
   @keyframes pulse { 50% { opacity: .45; } }
 
   /* ---------- puerta ---------- */
-  .door-scene { position: relative; width: 270px; margin: 34px auto 18px; display: flex; flex-direction: column; align-items: center; perspective: 1000px; }
-  .lights { position: absolute; left: 50%; top: -25px; width: 240px; height: 80px; margin-left: -120px; overflow: visible; z-index: 2; }
+  .door-scene { position: relative; width: 270px; margin: 44px auto 18px; display: flex; flex-direction: column; align-items: center; perspective: 1000px; }
+  /* Fachada de ladrillo que se difumina hacia los bordes. */
+  .facade {
+    position: absolute; left: 50%; top: -40px; width: 330px; height: 330px; margin-left: -165px; pointer-events: none;
+    background-color: #f0dcbd;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Cpath d='M0 .5H48M0 12.5H48M.5 0V12M24.5 12V24' stroke='%23b4875a' stroke-opacity='.32' stroke-width='1.4' fill='none'/%3E%3C/svg%3E");
+    -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 55%, transparent 100%);
+  }
+  .lights { position: absolute; left: 50%; top: -25px; width: 240px; height: 80px; margin-left: -120px; overflow: visible; z-index: 3; }
+  /* Hiedra con florecitas por el arco (las hojas las coloca vine() en el JS). */
+  .vine { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .vine .leaf {
+    position: absolute; width: 13px; height: 8px; margin: -4px 0 0 -6px; border-radius: 0 100% 0 100%;
+    background: linear-gradient(135deg, #8cbb72, #5b8c49); box-shadow: 0 1px 1px rgba(40, 60, 30, .25);
+  }
+  .vine .flower {
+    position: absolute; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%;
+    background: radial-gradient(circle, #ffe680 0 22%, #f7a6b8 24%); box-shadow: 0 0 0 1px rgba(255, 255, 255, .6);
+  }
+  /* Farolillos de pared, con la llama que parpadea. */
+  .lantern { position: absolute; top: 74px; width: 20px; height: 34px; z-index: 2; }
+  .lantern.l { left: 2px; } .lantern.r { right: 2px; }
+  .lantern::before {
+    content: ""; position: absolute; left: 50%; top: -9px; width: 26px; height: 10px; margin-left: -13px;
+    background: #4a3220; clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
+  .lantern::after {
+    content: ""; position: absolute; left: 50%; top: -34px; width: 70px; height: 70px; margin-left: -35px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 214, 110, .55), transparent); animation: flicker 2.6s ease-in-out infinite;
+  }
+  .lantern i {
+    position: absolute; inset: 0; border-radius: 3px 3px 5px 5px; border: 3px solid #4a3220;
+    background: radial-gradient(ellipse at 50% 65%, #fff3b8, #f6c945 55%, #e39a2c);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3), 0 3px 5px rgba(58, 42, 28, .25);
+  }
+  .lantern i::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(74, 50, 32, .55); }
+  @keyframes flicker { 0%, 100% { opacity: .85; transform: scale(1); } 30% { opacity: 1; transform: scale(1.06); } 55% { opacity: .7; } 75% { opacity: .95; transform: scale(.97); } }
+  /* Luciérnagas. */
+  .firefly {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff3a8; z-index: 3; pointer-events: none;
+    box-shadow: 0 0 6px 2px rgba(255, 220, 110, .8); animation: firefly 6s ease-in-out infinite;
+  }
+  @keyframes firefly {
+    0%, 100% { transform: translate(0, 0); opacity: 0; } 20% { opacity: 1; }
+    50% { transform: translate(var(--dx), var(--dy)); opacity: .9; } 80% { opacity: 0; }
+  }
   .lights path { fill: none; stroke: #6b4a2a; stroke-width: 1.4; opacity: .6; }
   .lights circle { animation: bulb 2.4s ease-in-out infinite; filter: drop-shadow(0 0 4px currentColor); }
   @keyframes bulb { 50% { opacity: .35; } }
-  .plant { position: absolute; bottom: 34px; font-size: 40px; filter: drop-shadow(0 4px 3px rgba(58, 42, 28, .2)); }
+  .plant { position: absolute; bottom: 44px; z-index: 2; font-size: 40px; filter: drop-shadow(0 4px 3px rgba(58, 42, 28, .2)); }
   .plant.l { left: 0; } .plant.r { right: 0; transform: scaleX(-1); }
   .mat {
     width: 150px; height: 28px; margin-top: -2px; border-radius: 5px; display: grid; place-items: center;
     font: 700 19px var(--hand); color: #7a4e22; letter-spacing: .04em;
     background: repeating-linear-gradient(90deg, #d9a35a 0 3px, #cf974c 3px 6px); box-shadow: 0 3px 6px rgba(58, 42, 28, .2);
   }
+  .door-step {
+    position: relative; z-index: 1; width: 206px; height: 11px; margin-top: -1px; border-radius: 3px 3px 5px 5px;
+    background: linear-gradient(#e6d6b6, #cbb592); box-shadow: 0 3px 5px rgba(58, 42, 28, .2), inset 0 1px 0 rgba(255, 255, 255, .5);
+  }
   .doorway {
-    position: relative; width: 170px; height: 240px; border-radius: 85px 85px 6px 6px;
+    position: relative; z-index: 1; width: 170px; height: 240px; border-radius: 85px 85px 6px 6px;
     background: radial-gradient(ellipse at 50% 60%, #fff6c8, var(--sun) 55%, var(--sun-deep));
     box-shadow: inset 0 0 0 8px #c99a62, 0 0 0 4px #a87a46, var(--shadow);
+  }
+  /* Arco de piedra: las juntas salen del centro del arco, como dovelas. */
+  .arch {
+    position: absolute; left: 34px; top: -16px; width: 202px; height: 256px; z-index: 0; border-radius: 101px 101px 4px 4px;
+    background: repeating-conic-gradient(from -90deg at 50% 101px, #e4d4b2 0 13deg, #b89f78 13deg 14deg);
+    box-shadow: 0 6px 14px rgba(58, 42, 28, .18), inset 0 0 0 1px rgba(120, 90, 60, .25);
+  }
+  /* Piedra central del arco, con un corazón. */
+  .doorway::after {
+    content: "♥"; position: absolute; left: 50%; top: -20px; width: 30px; height: 26px; margin-left: -15px; z-index: 2;
+    display: grid; place-items: center; font-size: 12px; color: var(--rose); padding-bottom: 3px; box-sizing: border-box;
+    background: linear-gradient(#efe3c8, #d8c4a0); clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
   }
   .doorway .inside {
     position: absolute; inset: 0; display: grid; place-items: center; font-size: 64px; opacity: 0; transform: scale(.7);
@@ -210,16 +271,48 @@
     position: absolute; inset: 8px; border-radius: 77px 77px 3px 3px; transform-origin: left center;
     background:
       linear-gradient(90deg, rgba(0, 0, 0, .08) 0 2px, transparent 2px) 0 0 / 33.33% 100%,
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 6px, rgba(0, 0, 0, .03) 6px 7px, transparent 7px 11px),
       linear-gradient(180deg, #9b6a3f, #84562f);
-    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .1); transition: transform 1.2s cubic-bezier(.6, 0, .3, 1);
+    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .1), inset 0 -18px 24px rgba(0, 0, 0, .08); transition: transform 1.2s cubic-bezier(.6, 0, .3, 1);
   }
   .doorway.open .door { transform: rotateY(-108deg); }
   .door::before, .door::after {
     content: ""; position: absolute; left: 17%; right: 17%; border-radius: 4px;
     box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .14), inset 2px 2px 0 2px rgba(255, 255, 255, .05);
   }
-  .door::before { top: 14%; height: 32%; border-radius: 46px 46px 4px 4px; }
-  .door::after { bottom: 9%; height: 30%; }
+  .door::before { top: 10%; height: 31%; border-radius: 46px 46px 4px 4px; }
+  .door::after { bottom: 10%; height: 25%; }
+  /* Ventanita redonda con luz dentro. */
+  .door-window {
+    position: absolute; left: 50%; top: 14%; width: 46px; height: 46px; margin-left: -23px; border-radius: 50%;
+    border: 5px solid #6e4524; box-shadow: 0 0 0 2px rgba(0, 0, 0, .12), inset 0 0 10px rgba(180, 110, 20, .5);
+    background:
+      linear-gradient(90deg, transparent calc(50% - 1.5px), #6e4524 calc(50% - 1.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+      linear-gradient(transparent calc(50% - 1.5px), #6e4524 calc(50% - 1.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+      radial-gradient(circle at 40% 35%, #fff6cc, #f6c945 60%, #e09a2e);
+  }
+  /* Corona de hojas con un lazo y el corazón en medio. */
+  .wreath { position: absolute; left: 50%; top: 45%; width: 42px; height: 42px; margin-left: -21px; display: grid; place-items: center; }
+  .wreath::before {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: repeating-conic-gradient(#79aa61 0 18deg, #5a8a47 18deg 36deg);
+    -webkit-mask: radial-gradient(circle, transparent 12px, #000 13px 20px, transparent 21px);
+    mask: radial-gradient(circle, transparent 12px, #000 13px 20px, transparent 21px);
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .3));
+  }
+  .wreath::after { content: "🎀"; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); font-size: 13px; }
+  .wreath span { font-size: 13px; }
+  /* Bisagras de hierro y placa dorada abajo. */
+  .hinge {
+    position: absolute; left: 0; width: 30px; height: 7px; border-radius: 0 4px 4px 0;
+    background: linear-gradient(#4a3426, #2e2018); box-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+  }
+  .hinge::after { content: ""; position: absolute; right: 4px; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: #8a7058; }
+  .hinge.t { top: 18%; } .hinge.b { bottom: 18%; }
+  .kick {
+    position: absolute; left: 12%; right: 12%; bottom: 3%; height: 6%; border-radius: 2px;
+    background: linear-gradient(#f3d27a, #c8962f); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 1px 2px rgba(0, 0, 0, .25);
+  }
   .keyhole.glow::before, .keyhole.glow::after { background: #ffe680; box-shadow: 0 0 10px 4px rgba(255, 220, 100, .9); }
   .keyhole.nope::before, .keyhole.nope::after { animation: nope .7s; }
   @keyframes nope { 40% { background: var(--bad); box-shadow: 0 0 8px 3px rgba(201, 71, 61, .7); } }
@@ -228,7 +321,6 @@
   .keyhole { position: absolute; right: 21px; top: calc(52% + 22px); width: 8px; height: 16px; }
   .keyhole::before { content: ""; position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #2a1a0e; }
   .keyhole::after { content: ""; position: absolute; left: 2px; top: 5px; width: 4px; height: 10px; background: #2a1a0e; border-radius: 0 0 2px 2px; }
-  .door-heart { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); font-size: 22px; opacity: .55; }
   .gate-card { max-width: 420px; margin: 0 auto; }
 
   /* ---------- contraseña ---------- */
@@ -512,14 +604,26 @@
   <section class="stage" id="s-gate">
     <h1>La puerta</h1>
     <p class="lead">Has llegado hasta aquí. Escribe la llave que has encontrado en nuestros recuerdos.</p>
-    <div class="door-scene">
+    <div class="door-scene" id="door-scene">
+      <div class="facade" aria-hidden="true"></div>
       <svg class="lights" id="lights" viewBox="0 0 240 80" aria-hidden="true"></svg>
+      <div class="vine" id="vine" aria-hidden="true"></div>
+      <div class="lantern l" aria-hidden="true"><i></i></div>
+      <div class="lantern r" aria-hidden="true"><i></i></div>
       <span class="plant l">🪴</span>
+      <div class="arch" aria-hidden="true"></div>
       <div class="doorway" id="doorway">
         <div class="inside">🦒</div>
-        <div class="door" id="door"><div class="door-heart">💛</div><div class="knob"></div><div class="keyhole" id="keyhole"></div></div>
+        <div class="door" id="door">
+          <div class="door-window"></div>
+          <div class="wreath"><span>💛</span></div>
+          <i class="hinge t"></i><i class="hinge b"></i>
+          <div class="knob"></div><div class="keyhole" id="keyhole"></div>
+          <div class="kick"></div>
+        </div>
       </div>
       <span class="plant r">🪴</span>
+      <div class="door-step"></div>
       <div class="mat">bienvenida</div>
     </div>
     <div class="gate-card">
@@ -775,6 +879,38 @@ $("env").onkeydown = e => { if (e.key === "Enter" || e.key === " ") openEnvelope
   }
   svg.innerHTML = `<path d="${d}"/>` + pts.map(([x, y], i) =>
     `<circle cx="${x}" cy="${y + 4}" r="4.5" fill="${colors[i % 4]}" color="${colors[i % 4]}" style="animation-delay:${(i * .37) % 2.4}s"/>`).join("");
+})();
+
+// Hiedra: sube por el lado izquierdo del arco y asoma un poco por la derecha. Las hojas van en la dirección del arco.
+(function vine() {
+  const box = $("vine"), cx = 135, cy = 85, R = 93, out = [];
+  const add = (x, y, rot, flower) => out.push(flower
+    ? `<span class="flower" style="left:${x}px;top:${y}px"></span>`
+    : `<span class="leaf" style="left:${x}px;top:${y}px;transform:rotate(${rot}deg)"></span>`);
+  for (let y = 236; y > cy; y -= 11) {
+    const x = cx - R + Math.sin(y / 13) * 3;
+    add(x - 5, y, 200 + (y % 3) * 25); add(x + 4, y - 5, 330 - (y % 2) * 30);
+    if (y % 4 === 0) add(x - 1, y - 2, 0, true);
+  }
+  for (let a = 180; a <= 262; a += 8) {
+    const r = a * Math.PI / 180, x = cx + R * Math.cos(r), y = cy + R * Math.sin(r);
+    add(x - 4 * Math.cos(r), y - 4 * Math.sin(r), a + 60); add(x + 4 * Math.cos(r), y + 4 * Math.sin(r), a - 60);
+    if (a % 24 === 4) add(x, y, 0, true);
+  }
+  for (let a = 300; a <= 336; a += 9) {
+    const r = a * Math.PI / 180, x = cx + R * Math.cos(r), y = cy + R * Math.sin(r);
+    add(x, y - 3, a + 70); if (a === 318) add(x + 2, y + 3, 0, true);
+  }
+  box.innerHTML = out.join("");
+  const scene = $("door-scene");
+  for (let i = 0; i < 7; i++) {
+    const f = document.createElement("span");
+    f.className = "firefly";
+    f.style.left = 10 + Math.random() * 250 + "px"; f.style.top = 10 + Math.random() * 220 + "px";
+    f.style.setProperty("--dx", Math.random() * 40 - 20 + "px"); f.style.setProperty("--dy", Math.random() * -40 - 5 + "px");
+    f.style.animationDelay = Math.random() * 6 + "s"; f.style.animationDuration = 5 + Math.random() * 3 + "s";
+    scene.append(f);
+  }
 })();
 
 async function flyKey() {
