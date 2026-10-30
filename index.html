@@ -180,6 +180,14 @@
   @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(60deg); } }
   .particle { position: absolute; z-index: 7; pointer-events: none; line-height: 1; }
   .tap { margin-top: 18px; font: 700 26px var(--hand); color: var(--muted); animation: pulse 2s infinite; }
+  /* Buzón amarillo en su poste, del que sale volando el sobre. */
+  .mailbox { position: absolute; left: clamp(-90px, calc(-10px - (100vw - 400px) * .2), -10px); top: -26px; width: 86px; height: 163px; z-index: 1; transform-origin: 50% 100%; }
+  .mailbox svg { width: 100%; height: 100%; overflow: visible; }
+  .mailbox .mb-flap { transform-box: fill-box; transform-origin: 50% 0; }
+  /* Las manos que reciben el sobre: van debajo, con los dedos por delante del borde del sobre. */
+  .hands { display: block; width: 104%; margin: -64px 0 0 -2%; position: relative; z-index: 4; pointer-events: none; }
+  .hands svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .env-stage .tap.wait { opacity: 0; animation: none; }
   @keyframes pulse { 50% { opacity: .45; } }
 
   /* ---------- puerta ---------- */
@@ -551,8 +559,13 @@
   @keyframes beat { 50% { transform: scale(1.18); } }
   .sign { text-align: right; font: 700 30px var(--hand); margin-top: 18px; opacity: 0; animation: ink 1.4s ease forwards; }
   /* ---------- paisaje de la pantalla de la puerta (solo se ve en esa fase) ---------- */
-  .gate-world { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 1.4s ease; }
-  body[data-stage="gate"] .gate-world { opacity: 1; }
+  /* Va pegado a la página (no a la pantalla) para que al hacer scroll se mueva junto con la casa. */
+  .gate-world {
+    position: absolute; left: 0; top: 0; width: 100%; height: 100vh; z-index: 0; pointer-events: none; overflow: hidden;
+    opacity: 0; visibility: hidden; transition: opacity 1.4s ease, visibility 0s 1.4s;
+  }
+  body[data-stage="gate"] .gate-world { opacity: 1; visibility: visible; transition: opacity 1.4s ease; }
+  body:not([data-stage="gate"]) .gate-world { height: 100vh !important; }
   .gw-sky {
     position: absolute; inset: 0;
     background: linear-gradient(180deg, #f3c08f 0%, #f8d3a6 18%, #fbe2bf 36%, #fdeed5 52%, #fef5e6 64%, #fdf3e1 100%);
@@ -574,7 +587,9 @@
   .gw-bird svg { width: 100%; height: 100%; overflow: visible; animation: flap .5s ease-in-out infinite alternate; }
   @keyframes fly { from { transform: translate(-40px, 0); } to { transform: translate(calc(100vw + 40px), -60px); } }
   @keyframes flap { to { transform: scaleY(.45); } }
-  .gw-hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 50vh; }
+  /* Las colinas se colocan desde el JS para que la casa quede siempre posada sobre ellas; debajo sigue el prado. */
+  .gw-hills { position: absolute; left: 0; top: 60%; width: 100%; height: 40%; }
+  .gw-ground { position: absolute; left: 0; right: 0; bottom: 0; top: 100%; background: linear-gradient(#a9c27c, #9cb970); }
   .gw-path {
     position: absolute; inset: 0;
     clip-path: polygon(calc(var(--gx) - 46px) var(--gy), calc(var(--gx) + 46px) var(--gy), calc(var(--gx) + min(150px, 36vw)) 100%, calc(var(--gx) - min(150px, 36vw)) 100%);
@@ -596,6 +611,14 @@
     90% { opacity: .7; } 100% { transform: translate(calc(var(--sway) * -1), 105vh) rotate(420deg); opacity: 0; }
   }
   .gate-world .firefly { z-index: auto; }
+  /* Jirafas que caminan por la colina: las patas van y vienen, el cuerpo sube y baja un poco. */
+  .gw-leg { transform-box: fill-box; transform-origin: 50% 0; animation: gstep .9s ease-in-out infinite alternate; }
+  .gw-leg.b { animation-delay: -.9s; }
+  @keyframes gstep { from { transform: rotate(15deg); } to { transform: rotate(-15deg); } }
+  .gw-gbody { animation: gbob .45s ease-in-out infinite alternate; }
+  @keyframes gbob { to { transform: translateY(-1.3px); } }
+  .gw-gneck { transform-box: fill-box; transform-origin: 30% 100%; animation: gnod 1.8s ease-in-out infinite alternate; }
+  @keyframes gnod { to { transform: rotate(-4deg); } }
 
   .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
   .hearts span { color: var(--rose); position: absolute; bottom: -40px; animation: float linear infinite; opacity: 0; }
@@ -634,6 +657,18 @@
         <span class="twinkle" style="left:44%;top:4%;font-size:13px;animation-delay:2.3s">✦</span>
         <span class="twinkle" style="right:-2%;top:70%;font-size:12px;animation-delay:1.5s">✦</span>
         <div class="env-glow" id="env-glow"></div>
+        <div class="mailbox" id="mailbox" aria-hidden="true"><svg viewBox="0 0 74 140">
+          <ellipse cx="37" cy="137" rx="22" ry="4" fill="#3a2a1c" opacity=".18"/>
+          <rect x="33" y="62" width="8" height="74" rx="2" fill="#6d5a4a"/><rect x="33" y="62" width="3" height="74" fill="#857160"/>
+          <rect x="26" y="130" width="22" height="6" rx="2" fill="#5b4a3c"/>
+          <path d="M6 66 V30 Q6 6 37 6 Q68 6 68 30 V66 Z" fill="#f2c230"/>
+          <path d="M6 66 V30 Q6 6 37 6 Q50 6 58 11 Q24 12 20 40 V66 Z" fill="#f8d65a"/>
+          <path d="M6 66 V30 Q6 6 37 6 Q68 6 68 30 V66 Z" fill="none" stroke="#c99a1a" stroke-width="2"/>
+          <rect x="3" y="62" width="68" height="7" rx="2" fill="#d9a91f"/>
+          <rect x="17" y="27" width="40" height="8" rx="4" fill="#3a2a1c"/>
+          <rect class="mb-flap" x="15" y="23" width="44" height="7" rx="3" fill="#e0ad1f" stroke="#c99a1a" stroke-width="1"/>
+          <path d="M37 54 c-6 -5 -11 -8 -11 -12 a5 5 0 0 1 11 -1 a5 5 0 0 1 11 1 c0 4 -5 7 -11 12z" fill="#e2566d"/>
+        </svg></div>
         <div class="env-float" id="env-float">
           <div class="envelope" id="env" role="button" aria-label="Abrir el sobre" tabindex="0">
             <div class="env-back"></div>
@@ -642,9 +677,20 @@
             <div class="env-flap" id="env-flap"><i class="out"></i><i class="in"></i></div>
             <div class="seal" id="seal"><i class="l">❤</i><i class="r">❤</i></div>
           </div>
+          <div class="hands" id="hands" aria-hidden="true"><svg viewBox="0 0 340 110">
+            <g id="hand-l">
+              <path d="M-6 112 L22 70 L58 84 L34 116 Z" fill="#8fb0d8"/><path d="M18 74 L56 88" stroke="#fffaf0" stroke-width="6" stroke-linecap="round"/>
+              <g stroke="#d99f7d" stroke-width="15" stroke-linecap="round"><path d="M70 74 L104 40"/><path d="M76 82 L114 50"/><path d="M80 90 L118 63"/><path d="M80 97 L112 78"/><path d="M58 66 L72 34"/></g>
+              <g stroke="#f4cba8" stroke-width="12" stroke-linecap="round"><path d="M70 74 L104 40"/><path d="M76 82 L114 50"/><path d="M80 90 L118 63"/><path d="M80 97 L112 78"/><path d="M58 66 L72 34"/></g>
+              <ellipse cx="62" cy="86" rx="30" ry="20" fill="#f4cba8" transform="rotate(-28 62 86)"/>
+              <path d="M44 96 Q60 90 74 98" stroke="#e3b08c" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <g fill="#fbe2cf"><ellipse cx="103" cy="42" rx="3.4" ry="2.4" transform="rotate(-45 103 42)"/><ellipse cx="113" cy="52" rx="3.4" ry="2.4" transform="rotate(-40 113 52)"/><ellipse cx="117" cy="64" rx="3.4" ry="2.4" transform="rotate(-35 117 64)"/><ellipse cx="71" cy="36" rx="3" ry="2.2" transform="rotate(-65 71 36)"/></g>
+            </g>
+            <use href="#hand-l" transform="translate(340 0) scale(-1 1)"/>
+          </svg></div>
         </div>
         <div class="env-ground" id="env-ground"></div>
-        <div class="tap" id="tap">toca el sobre</div>
+        <div class="tap wait" id="tap">toca el sobre</div>
       </div>
     </div>
   </section>
@@ -840,6 +886,7 @@ function show(stage) {
   renderSteps(stage);
   $("reset").hidden = stage === "intro";
   window.scrollTo(0, 0);
+  if (stage === "intro") envArrive();
   if (stage === "gate") { fitDoorScene(); placeGatePath(); setTimeout(placeGatePath, 800); }
   if (stage === "rules") { $("pw").value = st.pw; check(); }
   if (stage === "photos") renderPhotos();
@@ -848,12 +895,52 @@ function show(stage) {
 }
 
 // ---------- el sobre ----------
+let envReady = false;
+async function envArrive() {
+  const env = $("env"), tap = $("tap"), box = $("mailbox"), hands = $("hands");
+  if (reducedMotion) { envReady = true; tap.classList.remove("wait"); return; }
+  env.style.opacity = 0;
+  await sleep(700);
+  // El buzón se agita y se abre la ranura.
+  await box.animate([{ transform: "rotate(0)" }, { transform: "rotate(-5deg)" }, { transform: "rotate(4deg)" }, { transform: "rotate(-3deg)" },
+    { transform: "rotate(2deg)" }, { transform: "rotate(0)" }], { duration: 650, easing: "ease-in-out" }).finished;
+  const flap = box.querySelector(".mb-flap");
+  flap.animate([{ transform: "none" }, { transform: "rotateX(75deg) translateY(-3px)" }], { duration: 220, fill: "forwards" });
+  // De la ranura del buzón al sitio del sobre: sale hacia arriba, revolotea como un papel y cae en las manos.
+  const r1 = box.getBoundingClientRect(), r2 = env.getBoundingClientRect();
+  const dx = r1.left + r1.width * .5 - (r2.left + r2.width / 2), dy = r1.top + r1.height * .22 - (r2.top + r2.height / 2);
+  env.style.opacity = "";
+  const fly = env.animate([
+    { transform: `translate(${dx}px, ${dy}px) scale(.16) rotate(-30deg)`, opacity: 0 },
+    { transform: `translate(${dx}px, ${dy - 6}px) scale(.22) rotate(-22deg)`, opacity: 1, offset: .06 },
+    { transform: `translate(${dx * .45 + 60}px, ${dy - 55}px) scale(.62) rotate(18deg)`, offset: .3 },
+    { transform: `translate(${dx * .2 + 70}px, ${dy * .55 - 40}px) scale(.78) rotate(-14deg)`, offset: .48 },
+    { transform: `translate(-34px, ${dy * .28}px) scale(.88) rotate(10deg)`, offset: .64 },
+    { transform: `translate(26px, ${dy * .1}px) scale(.95) rotate(-6deg)`, offset: .8 },
+    { transform: "translate(-6px, -10px) scale(1) rotate(2deg)", offset: .92 },
+    { transform: "none" },
+  ], { duration: 2700, easing: "cubic-bezier(.3, .1, .4, 1)" });
+  fx(r1.left + r1.width / 2, r1.top + r1.height * .2, { n: 14, spread: 70, up: 30, kinds: ["✦", "✨", "💛"] });
+  await sleep(400);
+  flap.animate([{ transform: "rotateX(75deg) translateY(-3px)" }, { transform: "none" }], { duration: 300, fill: "forwards" });
+  await fly.finished;
+  // Las manos lo reciben con un pequeño rebote.
+  hands.animate([{ transform: "none" }, { transform: "translateY(9px)" }, { transform: "translateY(-2px)" }, { transform: "none" }],
+    { duration: 600, easing: "ease-out" });
+  env.animate([{ transform: "none" }, { transform: "translateY(9px)" }, { transform: "translateY(-2px)" }, { transform: "none" }],
+    { duration: 600, easing: "ease-out" });
+  fx(...center(env), { n: 22, spread: 130, up: 40 });
+  envReady = true;
+  tap.classList.remove("wait");
+}
+
 async function openEnvelope() {
   const env = $("env");
-  if (env.dataset.open) return;
+  if (env.dataset.open || !envReady) return;
   env.dataset.open = "1";
   $("tap").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" });
   if (reducedMotion) return show("gate");
+  $("mailbox").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: "forwards" });
 
   // Deja de flotar suavemente, desde donde esté.
   const float = $("env-float"), ground = $("env-ground"), now = getComputedStyle(float).transform;
@@ -898,6 +985,7 @@ async function openEnvelope() {
       { transform: base + `translateY(${el === flap ? -220 : 220}px)`, opacity: 0 }], drop);
   }
   ground.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: "forwards" });
+  $("hands").animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(60px)" }], drop);
   const big = Math.min(1.5, (window.innerWidth * .8) / letter.offsetWidth);
   await letter.animate([
     { transform: "translateY(-104%) scale(1) rotate(0)" },
@@ -1077,8 +1165,13 @@ addEventListener("resize", fitDoorScene);
     <ellipse cx="85" cy="46" rx="74" ry="11"/></g><circle cx="72" cy="20" r="9" fill="#fff" opacity=".8"/></svg>`;
   [[7, 110, 1], [16, 150, .7], [27, 90, .55], [11, 130, .45]].forEach(([top, dur, k]) =>
     out.push(`<div class="gw-cloud" style="top:${top}%;scale:${k};opacity:${.55 + k * .4};animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s">${cloud}</div>`));
-  [[13, 19, 0], [16, 27, 9]].forEach(([top, dur, delay]) =>
-    out.push(`<i class="gw-bird" style="top:${top}%;animation-duration:${dur}s;animation-delay:${delay}s"><svg viewBox="0 0 18 8"><path d="M1 1 Q5 6 9 5 Q13 6 17 1" fill="none" stroke="#9a7a5a" stroke-width="1.6" stroke-linecap="round"/></svg></i>`));
+  // Bandadas de pájaros que cruzan el cielo, cada una a su altura y su ritmo.
+  [[11, 5, 22, -6], [19, 3, 30, 4], [7, 4, 38, 14], [15, 2, 26, 20]].forEach(([top, n, dur, delay]) => {
+    for (let j = 0; j < n; j++) {
+      const size = rnd(14, 22);
+      out.push(`<i class="gw-bird" style="top:${top + rnd(-1.6, 1.6)}%;width:${size}px;height:${size * .45}px;animation-duration:${dur}s;animation-delay:${delay + j * .45 + rnd(0, .3)}s"><svg viewBox="0 0 18 8" style="animation-delay:-${rnd(0, .5)}s"><path d="M1 1 Q5 6 9 5 Q13 6 17 1" fill="none" stroke="#7d5f45" stroke-width="1.7" stroke-linecap="round"/></svg></i>`);
+    }
+  });
 
   // ---- El paisaje: viewBox 1000 x 340; en el móvil se ve el centro (unos 330-670). ----
   const g = [];
@@ -1148,7 +1241,7 @@ addEventListener("resize", fitDoorScene);
   for (const [x, k, f] of [[70, .55, tree], [150, .45, cypress], [255, .5, tree], [372, .42, pine], [405, .48, tree], [598, .45, tree], [630, .5, cypress], [742, .5, tree], [860, .45, pine], [930, .55, tree]])
     g.push(f(x, 196 + rnd(-3, 3), k, far));
   // Colina media, con vallas.
-  g.push(`<path d="M0 246 C160 220 320 238 470 232 S760 220 880 228 S960 236 1000 232 V340 H0Z" fill="url(#gw-h2)"/>`);
+  g.push(`<path id="gw-mid" d="M0 246 C160 220 320 238 470 232 S760 220 880 228 S960 236 1000 232 V340 H0Z" fill="url(#gw-h2)"/><g id="gw-giraffes"></g>`);
   g.push(fence(20, 250, 252, .8), fence(760, 990, 250, .8));
   for (const [x, k, f] of [[40, .8, tree], [120, .7, pine], [196, .8, cypress], [345, .78, tree], [655, .82, tree], [690, .7, cypress], [820, .8, pine], [905, .85, tree], [975, .7, cypress]])
     g.push(f(x, 238 + rnd(-2, 3), k, mid));
@@ -1171,22 +1264,77 @@ addEventListener("resize", fitDoorScene);
   };
   g.push(bush(360, 336, 1.1), bush(640, 338, 1.1), bush(160, 338, 1.3), bush(860, 336, 1.3));
 
-  out.push(`<svg class="gw-hills" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMax slice">${g.join("")}</svg><div class="gw-path"></div>`);
+  out.push(`<svg class="gw-hills" id="gw-hills" viewBox="0 0 1000 340" preserveAspectRatio="none">${g.join("")}</svg><div class="gw-ground" id="gw-ground"></div><div class="gw-path"></div>`);
   for (let i = 0; i < 9; i++)
     out.push(`<i class="gw-petal" style="left:${rnd(0, 100)}%;--sway:${rnd(-45, 45)}px;animation-duration:${rnd(13, 22)}s;animation-delay:-${rnd(0, 22)}s"></i>`);
   for (let i = 0; i < 10; i++)
     out.push(`<i class="firefly" style="left:${rnd(4, 96)}%;top:${rnd(45, 95)}%;--dx:${rnd(-30, 30)}px;--dy:${rnd(-50, -10)}px;animation-delay:${rnd(0, 6)}s;animation-duration:${rnd(5, 8)}s"></i>`);
   w.innerHTML = out.join("");
+  walkGiraffes();
 })();
+
+// Una jirafa con su cría, caminando por la colina media (pasan por detrás de los árboles de delante).
+function walkGiraffes() {
+  const box = $("gw-giraffes"), hill = $("gw-mid");
+  const giraffe = k => {
+    const leg = (x, cls, c) => `<g class="gw-leg ${cls}"><rect x="${x}" y="-27" width="3.4" height="27" rx="1.5" fill="${c}"/><rect x="${x}" y="-3" width="3.4" height="3" rx="1" fill="#6b4a2a"/></g>`;
+    const spots = [[-9, -31, 4.5, 3], [2, -27, 3.6, 2.8], [10, -33, 3, 2.4], [-2, -36, 3.2, 2], [-14, -27, 2.6, 2.2]]
+      .map(([x, y, rx, ry]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#c98a2e" opacity=".85"/>`).join("");
+    return `<g class="gw-giraffe"><g transform="scale(${k})">
+      <ellipse cx="2" cy="0" rx="22" ry="3" fill="#5f6e35" opacity=".18"/>
+      ${leg(-12, "b", "#d9a443")}${leg(10, "a", "#d9a443")}
+      <g class="gw-gbody">
+        <path d="M-18 -33 Q-25 -26 -23 -15" stroke="#c98a2e" stroke-width="1.6" fill="none"/><ellipse cx="-23" cy="-14" rx="1.7" ry="2.8" fill="#7a4f2c"/>
+        <ellipse cx="0" cy="-30" rx="20" ry="10.5" fill="#f2c062"/>${spots}
+        <g class="gw-gneck">
+          <path d="M8 -35 L21 -75 L28.5 -73 L18 -28 Z" fill="#f2c062"/>
+          <ellipse cx="17" cy="-50" rx="2.4" ry="2" fill="#c98a2e" opacity=".85"/><ellipse cx="21" cy="-63" rx="2" ry="1.8" fill="#c98a2e" opacity=".85"/><ellipse cx="13" cy="-41" rx="2.6" ry="2" fill="#c98a2e" opacity=".85"/>
+          <path d="M10 -37 L21.5 -73" stroke="#b9772a" stroke-width="2.2" stroke-dasharray="2 1.6"/>
+          <path d="M25 -81 L24 -88 M30 -82 L30 -89" stroke="#b9772a" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="24" cy="-89" r="1.8" fill="#7a4f2c"/><circle cx="30" cy="-90" r="1.8" fill="#7a4f2c"/>
+          <ellipse cx="20" cy="-80" rx="4" ry="1.7" fill="#e6a94a" transform="rotate(-25 20 -80)"/>
+          <ellipse cx="29" cy="-77" rx="8.5" ry="5.2" fill="#f2c062" transform="rotate(18 29 -77)"/>
+          <ellipse cx="35.5" cy="-73.5" rx="3.8" ry="3.1" fill="#e6a94a"/><circle cx="28" cy="-79" r="1.1" fill="#3a2a1a"/>
+        </g>
+      </g>
+      ${leg(-8, "a", "#f0bb57")}${leg(14, "b", "#f0bb57")}
+    </g></g>`;
+  };
+  box.innerHTML = giraffe(.62) + giraffe(.36);
+  if (reducedMotion) return;
+  // Se sigue la línea de la colina: para cada x, la y del borde de arriba del dibujo.
+  const len = hill.getTotalLength(), top = [];
+  for (let l = 0; l <= len; l += 4) { const pt = hill.getPointAtLength(l); if (pt.y < 300) top.push(pt); }
+  const yAt = x => {
+    let best = top[0];
+    for (const pt of top) if (Math.abs(pt.x - x) < Math.abs(best.x - x)) best = pt;
+    return best.y + 2;
+  };
+  const frames = [];
+  for (let x = -70; x <= 1070; x += 30) frames.push({ transform: `translate(${x}px, ${yAt(Math.min(1000, Math.max(0, x)))}px)` });
+  const dur = 90000;
+  [...box.children].forEach((g, i) => {
+    const a = g.animate(frames, { duration: dur, iterations: Infinity });
+    a.currentTime = dur * .3 - i * 3200;
+  });
+}
 // El camino tiene que acabar justo en el escalón de la puerta, mida lo que mida la pantalla.
+// El paisaje mide lo mismo que la página, y el camino se coloca en coordenadas de la página.
 function placeGatePath() {
   if (st.stage !== "gate") return;
-  const r = document.querySelector("#s-gate .mat").getBoundingClientRect(), w = $("gate-world");
-  w.style.setProperty("--gx", r.left + r.width / 2 + "px");
-  w.style.setProperty("--gy", r.bottom - 4 + "px");
+  const w = $("gate-world");
+  w.style.height = "100vh";
+  w.style.height = Math.max(innerHeight, document.documentElement.scrollHeight) + "px";
+  const r = document.querySelector("#s-gate .mat").getBoundingClientRect();
+  w.style.setProperty("--gx", r.left + scrollX + r.width / 2 + "px");
+  w.style.setProperty("--gy", r.bottom + scrollY - 4 + "px");
+  // Escala fija según el ancho, y la línea de la colina lejana (y = 200 en el dibujo) a la altura del felpudo.
+  const k = Math.max(innerWidth / 1000, 1.15), hills = $("gw-hills"), ground = $("gw-ground");
+  const top = r.bottom + scrollY - 200 * k + 6;
+  Object.assign(hills.style, { width: 1000 * k + "px", height: 340 * k + "px", left: (innerWidth - 1000 * k) / 2 + "px", top: top + "px" });
+  ground.style.top = top + 340 * k - 2 + "px";
 }
 addEventListener("resize", () => { fitDoorScene(); placeGatePath(); });
-addEventListener("scroll", placeGatePath, { passive: true });
 
 async function flyKey() {
   $("gate-in").blur();
